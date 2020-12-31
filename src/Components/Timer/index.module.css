@@ -84,6 +84,11 @@
   align-items: flex-end;
   flex-grow: 3;
 }
+.buttonContainer div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .button {
   width: min(80px, 20vw);
   height: min(80px, 20vw);
