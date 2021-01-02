@@ -9,6 +9,7 @@ let container: ShallowWrapper<any, Readonly<{}>, React.Component<{}, {}, any>>;
 let mounted: ReactWrapper<any, Readonly<{}>, React.Component<{}, {}, any>>;
 const buttonComp = (
   <Button
+    style=""
     children={<Play /> || <Pause /> || <Reset />}
     onClick={jest.fn()}
     type={"reset" || "start" || "reset"}

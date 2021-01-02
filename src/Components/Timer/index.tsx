@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import classes from "./index.module.css";
 import Button from "../Button/index";
 import { ReactComponent as Play } from "../../Assets/play.svg";
@@ -27,7 +21,7 @@ const Index: React.FC = () => {
     centiSeconds: 0,
   });
   const [timeOuts, setTimeOuts] = useState<any>();
-  useLayoutEffect(() => {
+  useEffect(() => {
     const toBeAnimated = [outerRef.current, innerRef.current];
     (toBeAnimated as any[]).forEach((val, i) => {
       val
@@ -53,6 +47,7 @@ const Index: React.FC = () => {
 
   const startTimer = () => {
     document.getAnimations().forEach((val) => val.play());
+    console.log("started-timer");
     const x = setInterval(() => {
       setTime((prev) => ({
         minutes: (prev.minutes + 0.01 / 60) % 60,
@@ -63,17 +58,21 @@ const Index: React.FC = () => {
     setTimeOuts(x);
   };
   const stopTimer = () => {
+    console.log("stopped-timer");
     window.clearInterval(timeOuts);
     document.getAnimations().forEach((val) => {
       val.pause();
     });
   };
   const resetTimer = () => {
+    console.log("reseted-timer");
     window.clearInterval(timeOuts);
     setTime({ seconds: 0, minutes: 0, centiSeconds: 0 });
-    document.getAnimations().forEach((val) => val.cancel());
+    document.getAnimations().forEach((val) => {
+      val.pause();
+      val.currentTime = 0;
+    });
   };
-  // console.log("rendered");
   const trimDisplayText = (val: number) => {
     const xNum = val.toString().split(".")[0];
     return parseInt(xNum).toLocaleString("en-US", {
