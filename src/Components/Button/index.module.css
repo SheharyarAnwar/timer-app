@@ -1,0 +1,7 @@
+.button {
+  width: 20vw;
+  max-width: 80px;
+  height: 20vw;
+  max-height: 80px;
+  border-radius: 50%;
+}
