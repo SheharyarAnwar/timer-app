@@ -1,10 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import classes from "./index.module.css";
 import Button from "../Button/index";
 import { ReactComponent as Play } from "../../Assets/play.svg";
 import { ReactComponent as Pause } from "../../Assets/pause.svg";
 import { ReactComponent as Reset } from "../../Assets/reset.svg";
-import { ButtonTypes } from "../../Types";
+import { ButtonTypes, Time } from "../../Types";
 
 const dimensions = 30;
 const svgProps = {
@@ -12,26 +18,65 @@ const svgProps = {
   height: dimensions,
 };
 const Index: React.FC = () => {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [timerState, setTimerState] = useState<ButtonTypes>();
-  const [seconds, setSeconds] = useState<number>(0);
-  const [minutes, setMinutes] = useState<number>(0);
-  const [centiSeconds, setCentiSeconds] = useState<number>(0);
+  const [time, setTime] = useState<Time>({
+    minutes: 0,
+    seconds: 0,
+    centiSeconds: 0,
+  });
+  const [timeOuts, setTimeOuts] = useState<any>();
+  useLayoutEffect(() => {
+    const toBeAnimated = [outerRef.current, innerRef.current];
+    (toBeAnimated as any[]).forEach((val, i) => {
+      val
+        ?.animate(
+          [
+            {
+              transform: "translateY(-100%) translateX(-50%) rotate(0deg)",
+            },
+            {
+              transform: "translateY(-100%) translateX(-50%) rotate(360deg)",
+            },
+          ],
+          {
+            easing: "linear",
+            iterations: Infinity,
+            duration: i === 0 ? 1000 : 1000 * 60,
+            pseudoElement: "::before",
+          }
+        )
+        .pause();
+    });
+  }, []);
 
   const startTimer = () => {
-    setMinutes(1);
-    setSeconds(1);
-    setCentiSeconds(1);
+    document.getAnimations().forEach((val) => val.play());
+    const x = setInterval(() => {
+      setTime((prev) => ({
+        minutes: (prev.minutes + 0.01 / 60) % 60,
+        seconds: (prev.seconds + 0.01) % 60,
+        centiSeconds: (prev.centiSeconds + 1) % 100,
+      }));
+    }, 10);
+    setTimeOuts(x);
   };
   const stopTimer = () => {
-    console.log("Stopped");
-    setMinutes((prev) => prev);
-    setSeconds((prev) => prev);
-    setCentiSeconds((prev) => prev);
+    window.clearInterval(timeOuts);
+    document.getAnimations().forEach((val) => {
+      val.pause();
+    });
   };
-  const resetTimer = () => {};
-
+  const resetTimer = () => {
+    window.clearInterval(timeOuts);
+    setTime({ seconds: 0, minutes: 0, centiSeconds: 0 });
+    document.getAnimations().forEach((val) => val.cancel());
+  };
+  // console.log("rendered");
   const trimDisplayText = (val: number) => {
-    return val.toLocaleString("en-US", {
+    const xNum = val.toString().split(".")[0];
+    return parseInt(xNum).toLocaleString("en-US", {
       minimumIntegerDigits: 2,
       useGrouping: false,
     });
@@ -53,37 +98,6 @@ const Index: React.FC = () => {
     }
   }, [timerState]);
 
-  useEffect(() => {
-    if (timerState === "stop") {
-      return;
-    }
-    setTimeout(() => {
-      setMinutes((prev) => prev + 1);
-    }, 60000);
-  }, [minutes, timerState]);
-  useEffect(() => {
-    if (timerState === "stop") {
-      return;
-    }
-    if (seconds == 59) {
-      setSeconds(0);
-    }
-    setTimeout(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
-  }, [seconds, timerState]);
-  useEffect(() => {
-    if (timerState === "stop") {
-      return;
-    }
-    if (centiSeconds === 99) {
-      setCentiSeconds(0);
-    }
-    setTimeout(() => {
-      setCentiSeconds((prev) => prev + 1);
-    }, 10);
-  }, [centiSeconds, timerState]);
-
   const buttonClicked = (type: ButtonTypes) => {
     if (timerState === type) {
       return;
@@ -103,20 +117,27 @@ const Index: React.FC = () => {
     () => ["start", "stop", "reset"],
     []
   );
-  const renderButtons = renderedButtonTypes.map((val, i) => {
-    return (
-      <Button key={i} onClick={buttonClicked} type={val}>
-        {svgArray[i]}
-      </Button>
-    );
-  });
+  const renderButtons = useMemo(
+    () =>
+      renderedButtonTypes.map((val, i) => {
+        const style = `neu-${val === timerState ? "convex" : "concave"}`;
+        return (
+          <Button key={i} onClick={buttonClicked} style={style} type={val}>
+            {svgArray[i]}
+          </Button>
+        );
+      }),
+    [timerState]
+  );
   return (
     <div className={classes.root}>
-      <div className={`neu-concave ${classes.circle}`}>
-        <div className={classes.innerCircle}>
-          <p className={classes.timeText}>{`${trimDisplayText(
-            minutes
-          )}:${trimDisplayText(seconds)}:${trimDisplayText(centiSeconds)}`}</p>
+      <div ref={outerRef} className={`neu-concave ${classes.circle}`}>
+        <div ref={innerRef} className={classes.innerCircle}>
+          <p className={classes.timeText}>
+            {`${trimDisplayText(time.minutes)}:${trimDisplayText(
+              time.seconds
+            )}:${trimDisplayText(time.centiSeconds)}`}
+          </p>
         </div>
       </div>
       <div className={classes.buttonContainer}>{renderButtons}</div>

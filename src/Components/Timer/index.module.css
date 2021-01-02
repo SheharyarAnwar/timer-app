@@ -90,11 +90,11 @@
   align-items: center;
 }
 
-@keyframes rotateCircle {
+/* @keyframes rotateCircle {
   from {
     transform: translateY(-100%) translateX(-50%) rotate(0deg);
   }
   to {
     transform: translateY(-100%) translateX(-50%) rotate(360deg);
   }
-}
+} */
